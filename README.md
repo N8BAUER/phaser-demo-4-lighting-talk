@@ -4,4 +4,4 @@ about Phaser.js. Which is a framework for creating 2-D games.
 
 If you want to run the game simply run an http-server.
 
-Also, note that only one in six people were able to beat this game on their first try. 
+Also, note that only one in six people were able to beat this game on their first try. Have fun playing my game! 
