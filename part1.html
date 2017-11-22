@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<title>Phaser - Making your first game, part 1</title>
+    <script src="//cdn.jsdelivr.net/phaser/2.2.2/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+   <body style = "background-color:brown">
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update });
+
+
+function preload() {
+
+    //Allow the user to go full screen
+   game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+   game.scale.startFullScreen(true);
+
+   //center game on screen
+   this.game.scale.pageAlignHorizontally = true;
+   this.game.scale.pageAlignVertically = true;
+   this.game.scale.refresh();
+
+
+	game.load.image('sky', 'assets/sky.png');
+	game.load.image('ground', 'assets/platform.png');
+	game.load.image('star', 'assets/star.png');
+  game.load.image('diamond', 'assets/diamond.png')
+  game.load.image('firstaid', 'assets/firstaid.png')
+  game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32)
+  game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+
+}
+
+var platforms;
+var player;
+var dog;
+var cursors;
+var stars;
+var diamonds;
+var firstaids;
+var baddie;
+var evilDog;
+var player1;
+var player2;
+
+var health = 100;
+var Score = 0;
+var ScoreText;
+
+//spirte ctrls
+var playerLeft;
+var playerRight;
+
+function create() {
+
+    // Maintain aspect ratio
+    game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+
+    //Go full screen if user clicks game canvas
+    game.input.onDown.add(gofull, this);
+
+    //We're going to be using physics, so enable the Arcade Physics system
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    // A simple background for our game
+    game.add.sprite(0, 0, 'sky');
+
+    // The platforms group contains the ground and the 2 ledges we can jump on
+    platforms = game.add.group();
+
+    // We will enable physics for any object that is created in this group
+    platforms.enableBody = true;
+
+    // Here we create the ground.
+    var ground = platforms.create(0, game.world.height - 64, 'ground');
+
+    // Scale it to fit the width of the game (the original sprite is 400x32 in size)
+    ground.scale.setTo(2,2);
+
+    // This stops it from falling away when you jump on it
+    ground.body.immovable = true;
+
+    // Now let's create two ledges
+    var ledge = platforms.create(400, 400, 'ground')
+
+    ledge.body.immovable= true;
+
+    ledge = platforms.create(-150, 250, 'ground')
+
+    ledge.body.immovable = true;
+
+    ledge = platforms.create(400, 125, 'ground')
+
+    ledge.body.immovable = true;
+
+    // This adds in a star sprite
+    game.add.sprite(0, 0, 'star');
+    game.add.sprite(192, 0, 'star');
+    game.add.sprite(385, 0, 'star');
+    game.add.sprite(577, 0, 'star');
+    game.add.sprite(775, 0, 'star');
+    game.add.sprite(0, 530, 'diamond');
+    game.add.sprite(192, 530, 'diamond');
+    game.add.sprite(385, 530, 'diamond');
+    game.add.sprite(577, 530, 'diamond');
+    game.add.sprite(768, 530, 'diamond');
+
+    // The player and its settings
+    // player = game.add.sprite(32, game.world.height - 150, 'dude');
+    evilDog = game.add.sprite(770, game.world.height - 150, 'baddie');
+
+    // We need to enable physics on the player
+    // game.physics.arcade.enable(player);
+    game.physics.arcade.enable(evilDog);
+    evilDog.body.bounce.y = 0.4;
+    evilDog.body.gravity.y = 300;
+    evilDog.body.collideWorldBounds = true;
+
+    // Our two animations, walking left and right.
+    // player.animations.add('left', [0, 1, 2, 3], 10, true);
+    // player.animations.add('right', [5, 6, 7, 8], 10, true);
+    evilDog.animations.add('left', [0, 1], 10, true);
+    evilDog.animations.add('right', [2, 3], 10, true);
+
+    player = game.add.sprite(500, game.world.height - 248, 'dude');
+    game.physics.arcade.enable(player);
+    player.body.collideWorldBounds = true;
+    player.animations.add('left', [0, 1, 2, 3], 10, true);
+    player.animations.add('right', [5, 6, 7, 8], 10, true);
+    //initialise player movement
+    player.body.velocity.x = 350;
+    player.animations.play('right');
+
+    player1 = game.add.sprite(0, 490, 'dude');
+    game.physics.arcade.enable(player1);
+    player1.body.collideWorldBounds = true;
+    player1.animations.add('left', [0, 1, 2, 3], 10, true);
+    player1.animations.add('right', [5, 6, 7, 8], 10, true);
+    //initialise player movement
+    player1.body.velocity.x = 350;
+    player1.animations.play('right');
+
+    player2 = game.add.sprite(450, 79, 'dude');
+    game.physics.arcade.enable(player2);
+    player2.body.collideWorldBounds = true;
+    player2.animations.add('left', [0, 1, 2, 3], 10, true);
+    player2.animations.add('right', [5, 6, 7, 8], 10, true);
+    //initialise player movement
+    player2.body.velocity.x = 350;
+    player2.animations.play('right');
+
+
+    firstaids = game.add.group();
+
+    firstaids.enableBody = true;
+
+    diamonds = game.add.group();
+
+    diamonds.enableBody = true;
+
+    stars = game.add.group();
+
+    stars.enableBody = true;
+
+    //firstaids
+     var firstaid = firstaids.create(0, 220, 'firstaid');
+     var firstaid = firstaids.create(0, 500, 'firstaid');
+      firstaid.body.gravity.y = 47;
+      firstaid.body.bounce.y = 0.1 + Math.random() * 0.3;
+
+    // Here we'll create i of them evenly space apart
+    for (var i = 0; i < 6; i++)
+    {
+        // Create a star inside of the 'stars' group
+        var star = stars.create(i * 145, 0, 'star');
+        var diamond = diamonds.create(i * 145, 200, 'diamond');
+
+
+        // Let gravity do its thing
+        star.body.gravity.y = 6;
+        diamond.body.gravity.y = 100;
+
+
+        // This just gives each star a slightly random bounce value
+        star.body.bounce.y = 0.7 + Math.random() * 0.2;
+        diamond.body.bounce.y = 0.5 + Math.random() * .5;
+
+    }
+
+    ScoreText = game.add.text(16, 46, 'Score: 0', { fontSize: '32px', fill: '#000'});
+    healthText = game.add.text(16, 16, 'Health: 100', { fontSize: '32px', fill: '#000'});
+
+        cursors = game.input.keyboard.createCursorKeys();
+}
+
+
+
+
+
+
+
+function update() {
+
+    //Collide the player and the stars with platforms
+    var hitPlatform = game.physics.arcade.collide(evilDog, platforms);
+    game.physics.arcade.collide(stars, platforms);
+    game.physics.arcade.collide(diamonds, platforms);
+    game.physics.arcade.collide(firstaids, platforms);
+    game.physics.arcade.collide(player, platforms);
+
+    //check to see if a player overlaps with a star or night
+    game.physics.arcade.overlap(evilDog, stars, collectStar, null, this);
+
+    // //check to see ifa evilDog overlaps with a diamond
+    game.physics.arcade.overlap(evilDog, diamonds, collectDiamond, null, this);
+    game.physics.arcade.overlap(evilDog, firstaids, collectFirstAid, null, this);
+
+     game.physics.arcade.overlap(player, evilDog, touchEnemy, null, this);
+     game.physics.arcade.overlap(player1, evilDog, touchEnemy1, null, this);
+     game.physics.arcade.overlap(player2, evilDog, touchEnemy2, null, this);
+
+    //  Reset the players velocity (movement)
+    evilDog.body.velocity.x = 0;
+
+
+    // player (acutal baddie) movement
+    if (player.x < 400){
+           player.body.velocity.x = 350;
+           player.animations.play('right');
+      } else if(player.x > 760){
+           player.body.velocity.x = -350;
+           player.animations.play('left');
+      }
+
+      // player (acutal baddie) movement
+      if (player1.x < 1){
+             player1.body.velocity.x = 350;
+             player1.animations.play('right');
+        } else if(player1.x > 760){
+             player1.body.velocity.x = -350;
+             player1.animations.play('left');
+        }
+
+        // player (acutal baddie) movement
+        if (player2.x < 400){
+               player2.body.velocity.x = 350;
+               player2.animations.play('right');
+          } else if(player2.x > 760){
+               player2.body.velocity.x = -350;
+               player2.animations.play('left');
+          }
+
+    if (cursors.left.isDown)
+    {
+        //  Move to the left
+        evilDog.body.velocity.x = -150;
+
+        evilDog.animations.play('left');
+    }
+    else if (cursors.right.isDown)
+    {
+        //  Move to the right
+        evilDog.body.velocity.x = 150;
+
+        evilDog.animations.play('right');
+    }
+    else
+    {
+        //  Stand still
+        evilDog.animations.stop();
+
+        evilDog.frame = 4;
+    }
+
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && evilDog.body.touching.down && hitPlatform)
+    {
+        evilDog.body.velocity.y = -299;
+    }
+
+    //Check if player has collected all the stars and won the game
+    if (Score == 400) {
+        evilDog.kill();
+        player.kill();
+        //player.scale.setTo(3, 3);
+        //player.y = game.height/2;
+        var style = { font: "bold 24px Arial", fill: "gold", boundsAlignH: "center", boundsAlignV: "middle" };
+        var text = game.add.text(game.world.centerX -340, game.world.centerY, "YOU CONQUERED THIS REALM YOU FILTHY ANIMAL!", style);
+
+    }
+}
+
+
+
+
+
+
+function collectStar (evilDog, star) {
+    //removes the star from the screen
+    star.kill();
+
+    //Add and update teh score
+    Score += 50;
+    ScoreText.text = 'Score: ' + Score;
+}
+
+function touchEnemy (player, evilDog) {
+   if ( evilDog.y < player.y ){
+        player.body.velocity.x = 0;
+        player.y -= 500;
+        player.kill();
+        evilDog.y -= 30;
+} else {
+   health -= 10;
+}
+healthText.text = 'Health: ' + health;
+        //Gameover
+        if(health == 0){
+            evilDog.kill();
+            var text = game.add.text(game.world.centerX -250, game.world.centerY, "NPCs FTW!", { font: "65px Arial", fill: "#ff0044", align: "center" });
+         }
+}
+
+function touchEnemy1 (player1, evilDog) {
+   if ( evilDog.y < player1.y ){
+        player1.body.velocity.x = 0;
+        player1.y -= 500;
+        player1.kill();
+        evilDog.y -= 30;
+} else {
+   health -= 10;
+}
+healthText.text = 'Health: ' + health;
+        //Gameover
+        if(health == 0){
+            evilDog.kill();
+            var text = game.add.text(game.world.centerX -250, game.world.centerY, "NPCs FTW!", { font: "65px Arial", fill: "#ff0044", align: "center" });
+         }
+}
+
+function touchEnemy2 (player2, evilDog) {
+   if ( evilDog.y < player2.y ){
+        player2.body.velocity.x = 0;
+        player2.y -= 500;
+        player2.kill();
+        evilDog.y -= 30;
+} else {
+   health -= 10;
+}
+healthText.text = 'Health: ' + health;
+        //Gameover
+        if(health == 0){
+            evilDog.kill();
+            var text = game.add.text(game.world.centerX -250, game.world.centerY, "NPCs FTW!", { font: "65px Arial", fill: "#ff0044", align: "center" });
+         }
+}
+
+function collectDiamond(evilDog, diamond){
+    diamond.kill();
+
+    Score += 100;
+    ScoreText.text = 'Score: ' + Score;
+}
+
+function collectFirstAid(evilDog, firstaid){
+    firstaid.kill();
+
+    Score -= 250;
+    ScoreText.text = 'Score: ' + Score;
+}
+
+function gofull() {
+
+    if (game.scale.isFullScreen) {
+        game.scale.stopFullScreen();
+    } else {
+        game.scale.startFullScreen(false);
+    }
+}
+
+
+
+</script>
+
+</body>
+</html>
